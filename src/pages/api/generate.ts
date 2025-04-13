@@ -34,26 +34,37 @@ interface ResponseData {
 const buildPrompt = (form: RequestBody, scenario: string): string => {
   const { playerName, courseName, holeNumber, par, tone, context } = form;
 
-  const location = courseName || "a classic American golf course";
+  const location = courseName || "a prestigious golf course";
   const hole = holeNumber || "?";
   const parValue = par || "?";
 
   const toneInstruction = {
-    Roast: "Make it light-hearted and playfully roast the player.",
-    "Fire Up": "Make it sound like an epic motivational speech.",
-    "Surprise Me": "Be wildly creative or humorous.",
+    Roast:
+      "Use clever, dry wit. Avoid anything crude or direct. Think gentle teasing that still sounds classy.",
+    "Fire Up":
+      "Use poetic, inspirational language like you're narrating the final hole of a major tournament.",
+    "Surprise Me":
+      "Be creative, but never break the voice of a serious broadcaster. Jim Nantz doesn't shout or meme.",
   }[tone];
 
   const optionalContext = context
-    ? `Incorporate this additional detail: "${context}"`
+    ? `Also incorporate this detail if appropriate: "${context}".`
     : "";
 
   return `
-  You are legendary golf commentator Jim Nantz.
-  Narrate ${playerName} ${scenario} on hole ${hole} (Par ${parValue}) at ${location}.
-  ${toneInstruction} Keep it vague and fun — do not invent real past events.
-  Keep it short and punchy (aim for 15–25 seconds).
+  You are Jim Nantz, the legendary golf broadcaster.
+  Narrate the scene of ${playerName} ${scenario} on hole ${hole} (Par ${parValue}) at ${location}.
+  
+  Speak with the tone and vocabulary of a calm, articulate, deeply experienced broadcaster. Everything should feel important, intentional, and thoughtful — as if millions are watching this moment unfold live on TV.
+  
+  Avoid all non-verbal cues like "*chuckles*", "(laughs)", or anything that would not be spoken aloud.
+  
+  Your language should be smooth and ready for direct speech-to-voice conversion. No stage directions or actions. Just beautifully crafted commentary.
+  
+  ${toneInstruction}
   ${optionalContext}
+  
+  Limit your response to 2–3 sentences and no more than 70 words total.
   `;
 };
 
@@ -84,7 +95,7 @@ export default async function handler(
     const results = await Promise.all(
       scenarios.map((scenario) =>
         openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
@@ -98,8 +109,15 @@ export default async function handler(
       )
     );
 
-    const [teeBox, preShot, postSwing] = results.map(
-      (r) => r.choices[0].message.content || ""
+    const clean = (text: string) =>
+      (text || "")
+        .replace(/\*.*?\*|\(.*?\)|\[.*?\]/g, "") // remove *actions*, (stage directions)
+        .split(" ")
+        .slice(0, 70) // max ~25s of speaking
+        .join(" ");
+
+    const [teeBox, preShot, postSwing] = results.map((r) =>
+      clean(r.choices[0].message.content || "")
     );
 
     return res.status(200).json({ teeBox, preShot, postSwing });

@@ -18,7 +18,9 @@ export default async function handler(
   }
 
   try {
-    const cleanText = text.slice(0, 450); // ~20–25 sec narration
+    const cleanText = text
+      .replace(/\*.*?\*|\(.*?\)|\[.*?\]/g, "")
+      .slice(0, 450);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
