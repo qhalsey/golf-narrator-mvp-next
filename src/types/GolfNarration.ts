@@ -6,4 +6,5 @@ export interface GolfNarrationFormData {
   holeNumber: string;
   par: string;
   tone: ToneOption;
+  context: string; // 👈 new field
 }

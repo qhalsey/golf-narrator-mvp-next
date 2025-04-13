@@ -22,6 +22,7 @@ interface RequestBody {
   holeNumber?: string;
   par?: string;
   tone: Tone;
+  context?: string; // Optional additional context
 }
 
 interface ResponseData {
@@ -31,29 +32,29 @@ interface ResponseData {
 }
 
 const buildPrompt = (form: RequestBody, scenario: string): string => {
-  const { playerName, courseName, holeNumber, par, tone } = form;
+  const { playerName, courseName, holeNumber, par, tone, context } = form;
 
   const location = courseName || "a classic American golf course";
   const hole = holeNumber || "?";
   const parValue = par || "?";
 
   const toneInstruction = {
-    Roast:
-      "Make it light-hearted and playfully roast the player. Do not mention specific prior events like previous shots.",
-    "Fire Up":
-      "Make it sound like an epic motivational speech, full of hype. Do not mention past results or scores.",
-    "Surprise Me":
-      "Be wildly creative or humorous, but avoid specifics about what happened earlier in the round.",
+    Roast: "Make it light-hearted and playfully roast the player.",
+    "Fire Up": "Make it sound like an epic motivational speech.",
+    "Surprise Me": "Be wildly creative or humorous.",
   }[tone];
+
+  const optionalContext = context
+    ? `Incorporate this additional detail: "${context}"`
+    : "";
 
   return `
   You are legendary golf commentator Jim Nantz.
   Narrate ${playerName} ${scenario} on hole ${hole} (Par ${parValue}) at ${location}.
-  Stay vivid, clever, and in character. 
-  ${toneInstruction}
-  Do not fabricate factual events or statistics—keep the description entertaining but vague when necessary.
-  Keep it under 40 seconds of narration.
-    `;
+  ${toneInstruction} Keep it vague and fun — do not invent real past events.
+  Keep it short and punchy (aim for 15–25 seconds).
+  ${optionalContext}
+  `;
 };
 
 export default async function handler(

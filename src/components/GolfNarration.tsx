@@ -24,12 +24,15 @@ export const GolfNarrationForm: React.FC<Props> = ({ onResult }) => {
     holeNumber: "",
     par: "",
     tone: "Roast",
+    context: "", // 👈
   });
 
   const [loading, setLoading] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setForm((prev: GolfNarrationFormData) => ({ ...prev, [name]: value }));
@@ -133,6 +136,20 @@ export const GolfNarrationForm: React.FC<Props> = ({ onResult }) => {
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-1">
+          Additional Context (optional)
+        </label>
+        <textarea
+          name="context"
+          value={form.context}
+          onChange={handleChange}
+          placeholder="Mention anything specific you'd like in the narration..."
+          className="mt-1 block w-full border border-gray-400 rounded-md shadow-sm p-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600"
+          rows={4}
+        />
       </div>
 
       <button
